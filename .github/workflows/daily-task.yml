@@ -1,0 +1,52 @@
+name: 每日自动领取CDK
+
+on:
+  # 定时任务：每天北京时间 9:00 执行 (UTC 1:00)
+  schedule:
+    - cron: '0 1 * * *'
+
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  claim-cdk:
+    runs-on: ubuntu-latest
+
+    # 使用 GitHub Environment 管理环境变量
+    environment: production
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: 运行自动化脚本
+        run: npm start
+        env:
+          # 从 Environment 中读取 cookies
+          COOKIES_JSON: ${{ secrets.COOKIES_JSON }}
+
+      - name: 上传截图（如果有错误）
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: error-screenshots
+          path: |
+            *.png
+          retention-days: 7
+
+      - name: 发送通知（可选）
+        if: failure()
+        run: |
+          echo "任务执行失败，请检查日志"
+          # 这里可以添加其他通知方式，如 Telegram、企业微信等

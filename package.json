@@ -1,0 +1,26 @@
+{
+  "name": "cdk-auto-claim",
+  "version": "1.0.0",
+  "description": "自动领取CDK的Playwright自动化脚本",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "save-cookies": "node src/utils/saveCookies.js",
+    "verify-cookies": "node verify-cookies.js",
+    "test": "node src/index.js"
+  },
+  "keywords": [
+    "playwright",
+    "automation",
+    "cdk"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}
