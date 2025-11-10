@@ -72,21 +72,53 @@ npm start
 
 ### 配置方式
 
-**方式 1：本地文件（用于开发测试）**
+项目支持多种 Cookie 配置方式，优先级从高到低：
+
+1. 环境变量 `COOKIE_STRING`（简单字符串，推荐）
+2. 环境变量 `COOKIES_JSON`（完整 JSON 格式）
+3. 本地文件 `config/cookie.txt`
+4. 本地文件 `config/cookies.json`
+
+#### 方式 1：使用 .env 文件（本地开发推荐）
+
+```bash
+# 1. 获取 Cookies
+npm run save-cookies
+
+# 2. 复制环境变量配置模板
+cp .env.example .env
+
+# 3. 将脚本输出的 COOKIE_STRING 复制到 .env 文件中
+# COOKIE_STRING=sessionid=xxx; token=yyy; ...
+
+# 4. 运行脚本
+npm start
+```
+
+#### 方式 2：使用配置文件（传统方式）
+
 ```bash
 npm run save-cookies  # 保存到 config/cookies.json
 npm start             # 自动从文件读取
 ```
 
-**方式 2：环境变量（用于 GitHub Actions）**
-```bash
-# Linux / macOS
-export COOKIES_JSON='[{"name":"..."}]'
-npm start
+#### 方式 3：GitHub Actions 环境变量
 
-# Windows PowerShell
-$env:COOKIES_JSON = Get-Content config/cookies.json -Raw
-npm start
+在 GitHub Repository 的 Settings → Secrets and variables → Actions 中添加：
+
+- Secret 名称：`COOKIE_STRING`（推荐）或 `COOKIES_JSON`
+- Secret 值：从 `npm run save-cookies` 命令输出中复制
+
+**示例：**
+```bash
+# 运行 save-cookies 后，复制输出的环境变量格式
+npm run save-cookies
+
+# 输出示例：
+# ============================================================
+# 方式1 - COOKIE_STRING 格式（推荐，适用于本地和 GitHub Actions）:
+# COOKIE_STRING=sessionid=abc123; token=xyz789; ...
+# ============================================================
 ```
 
 ---
@@ -110,7 +142,8 @@ npm start
 
 ### 🔒 安全
 
-- 不要将 `config/cookies.json` 提交到公开仓库
+- 不要将 `config/cookies.json`、`config/cookie.txt` 或 `.env` 文件提交到公开仓库
+- `.gitignore` 已配置忽略这些敏感文件
 - 使用 GitHub Environments + Secrets 存储敏感信息
 - 定期更换密码和 Cookies（建议每月）
 

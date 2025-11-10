@@ -60,6 +60,28 @@ async function saveCookies() {
       console.log(`  - ${cookie.name}: ${cookie.value.substring(0, 20)}...`);
     });
 
+    // 生成环境变量格式的建议
+    console.log('\n' + '='.repeat(60));
+    console.log('📋 环境变量配置建议：');
+    console.log('='.repeat(60));
+
+    // 生成 COOKIE_STRING 格式
+    const cookieString = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+    console.log('\n方式1 - COOKIE_STRING 格式（推荐，适用于本地和 GitHub Actions）:');
+    console.log('─'.repeat(60));
+    console.log('COOKIE_STRING=' + cookieString);
+
+    // 生成 COOKIES_JSON 格式
+    console.log('\n方式2 - COOKIES_JSON 格式:');
+    console.log('─'.repeat(60));
+    console.log('COOKIES_JSON=' + JSON.stringify(cookies));
+
+    console.log('\n💡 使用说明:');
+    console.log('  本地开发: 将上述内容添加到项目根目录的 .env 文件中');
+    console.log('  GitHub Actions: 在 Repository Settings > Secrets and variables > Actions');
+    console.log('                  添加对应的 secret (名称: COOKIE_STRING 或 COOKIES_JSON)');
+    console.log('='.repeat(60) + '\n');
+
   } catch (error) {
     console.error('❌ 保存 cookies 时发生错误:', error.message);
     throw error;

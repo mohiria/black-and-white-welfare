@@ -5,6 +5,8 @@ package-lock.json
 # 敏感信息
 config/cookies.json
 config/cookie.txt
+.env
+.env.local
 
 # 截图文件
 *.png
