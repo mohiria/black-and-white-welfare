@@ -40,7 +40,7 @@ jobs:
 
       - name: 上传截图（如果有错误）
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: error-screenshots
           path: |
