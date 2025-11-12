@@ -20,6 +20,55 @@
 - Node.js 20 或更高版本
 - npm 包管理器
 
+### GitHub Actions 自动化部署
+
+#### 1. Fork 本仓库
+
+点击右上角的 Fork 按钮，将项目 Fork 到你的账号下。
+
+#### 2. 创建 Environment
+
+1. 进入仓库 Settings → Environments
+2. 点击 "New environment"
+3. 输入环境名称：`production`
+4. 点击 "Configure environment"
+
+#### 3. 配置 Secrets
+
+在 `production` 环境中添加以下 Secrets：
+
+| Secret 名称 | 说明 | 是否必需 |
+|------------|------|---------|
+| `CDK_COOKIE_STRING` | CDK 站点的 Cookie 字符串 | ✅ 必需 |
+| `AI_API_KEY` | AI 站点的 API Key | ✅ 必需 |
+| `AI_REDEEM_URL` | 兑换接口地址（默认：https://ai.hybgzs.com/api/user/topup） | ⚪ 可选 |
+
+#### 4. 获取 Cookie 的方法
+
+1. 打开浏览器，访问 https://cdk.hybgzs.com/
+2. 登录你的账号
+3. 按 F12 打开开发者工具
+4. 切换到 "Network" (网络) 标签
+5. 刷新页面
+6. 找到任意请求，点击查看 Headers
+7. 找到 "Cookie" 字段，复制整个 Cookie 字符串
+8. 格式类似：`sessionid=abc123; token=xyz789; ...`
+![获取cookie](./get_cookie.jpeg)
+
+#### 5. 获取 API_KEY 的方法
+1. 打开浏览器，访问 https://ai.hybgzs.com/
+2. 登录你的账号
+3. 进入到个人设置页面
+4. 其他分类下找到访问令牌
+![获取apikey](./get_api_key.jpeg)
+
+#### 5. 启用 GitHub Actions
+
+1. 进入仓库 Actions 标签
+2. 如果提示工作流被禁用，点击 "I understand my workflows, go ahead and enable them"
+3. 选择 "自动领取CDK" 工作流
+4. 点击 "Run workflow" 测试运行
+
 ### 本地运行
 
 #### 1. 克隆项目
@@ -63,47 +112,6 @@ AI_REDEEM_URL=https://ai.hybgzs.com/api/user/topup
 ```bash
 npm start
 ```
-
-### GitHub Actions 自动化部署
-
-#### 1. Fork 本仓库
-
-点击右上角的 Fork 按钮，将项目 Fork 到你的账号下。
-
-#### 2. 创建 Environment
-
-1. 进入仓库 Settings → Environments
-2. 点击 "New environment"
-3. 输入环境名称：`production`
-4. 点击 "Configure environment"
-
-#### 3. 配置 Secrets
-
-在 `production` 环境中添加以下 Secrets：
-
-| Secret 名称 | 说明 | 是否必需 |
-|------------|------|---------|
-| `CDK_COOKIE_STRING` | CDK 站点的 Cookie 字符串 | ✅ 必需 |
-| `AI_API_KEY` | AI 站点的 API Key | ✅ 必需 |
-| `AI_REDEEM_URL` | 兑换接口地址（默认：https://ai.hybgzs.com/api/user/topup） | ⚪ 可选 |
-
-#### 4. 获取 Cookie 的方法
-
-1. 打开浏览器，访问 https://cdk.hybgzs.com/
-2. 登录你的账号
-3. 按 F12 打开开发者工具
-4. 切换到 "Network" (网络) 标签
-5. 刷新页面
-6. 找到任意请求，点击查看 Headers
-7. 找到 "Cookie" 字段，复制整个 Cookie 字符串
-8. 格式类似：`sessionid=abc123; token=xyz789; ...`
-
-#### 5. 启用 GitHub Actions
-
-1. 进入仓库 Actions 标签
-2. 如果提示工作流被禁用，点击 "I understand my workflows, go ahead and enable them"
-3. 选择 "自动领取CDK" 工作流
-4. 点击 "Run workflow" 测试运行
 
 ## 项目结构
 
