@@ -1,9 +1,9 @@
-name: 每日自动领取CDK
+name: 自动领取CDK
 
 on:
-  # 定时任务：每天北京时间 9:00 执行 (UTC 1:00)
+  # 定时任务：每6小时执行一次
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '0 */6 * * *'
 
   # 允许手动触发
   workflow_dispatch:
@@ -33,8 +33,10 @@ jobs:
       - name: 运行自动化脚本
         run: npm start
         env:
-          # 从 Environment 中读取 cookies
-          COOKIES_JSON: ${{ secrets.COOKIES_JSON }}
+          # 从 Environment 中读取环境变量
+          CDK_COOKIE_STRING: ${{ secrets.CDK_COOKIE_STRING }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_REDEEM_URL: ${{ secrets.AI_REDEEM_URL }}
 
       - name: 上传截图（如果有错误）
         if: failure()
@@ -42,11 +44,26 @@ jobs:
         with:
           name: error-screenshots
           path: |
-            *.png
+            images/*.png
           retention-days: 7
 
-      - name: 发送通知（可选）
+      - name: 发送邮件通知（CDK兑换失败时）
         if: failure()
-        run: |
-          echo "任务执行失败，请检查日志"
-          # 这里可以添加其他通知方式，如 Telegram、企业微信等
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: '⚠️ CDK兑换失败通知'
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.MAIL_USERNAME }}
+          body: |
+            CDK兑换任务执行失败，请检查GitHub Actions日志。
+
+            执行时间: ${{ github.event.repository.updated_at }}
+            仓库: ${{ github.repository }}
+            运行ID: ${{ github.run_id }}
+
+            查看详情: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+

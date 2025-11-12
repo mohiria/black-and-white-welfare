@@ -67,9 +67,15 @@ async function main() {
     console.log('✅ CDK 站点页面已关闭');
 
     // 任务3: 兑换 CDK 码（通过 API 接口）
-    await redeemCDK();
+    const redeemResult = await redeemCDK();
 
     console.log('\n🎉 所有任务执行完成！');
+
+    // 如果有兑换失败的 CDK，返回失败状态码
+    if (redeemResult && redeemResult.failCount > 0) {
+      console.error('\n⚠️  存在兑换失败的 CDK，退出码: 1');
+      process.exit(1);
+    }
 
   } catch (error) {
     console.error('❌ 执行过程中发生错误:', error.message);

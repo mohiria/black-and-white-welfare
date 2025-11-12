@@ -3,6 +3,7 @@ import { sleep, readCDKFile, writeCDKFile, clearFile, getAbsolutePath } from '..
 
 /**
  * 兑换 CDK 码（通过 API 接口）
+ * @returns {Object} 返回兑换结果 { failedCdks: Array, successCount: number, failCount: number }
  */
 export async function redeemCDK() {
   console.log('\n💎 开始兑换 CDK 码...');
@@ -15,7 +16,7 @@ export async function redeemCDK() {
 
     if (cdkLines.length === 0) {
       console.log('⚠️  CDK 文件为空，跳过兑换');
-      return;
+      return { failedCdks: [], successCount: 0, failCount: 0 };
     }
 
     console.log(`📋 共找到 ${cdkLines.length} 个 CDK 码待兑换`);
@@ -23,7 +24,7 @@ export async function redeemCDK() {
     // 验证 API Key
     if (!config.ai.apiKey) {
       console.error('❌ 未找到 AI_API_KEY 环境变量，无法进行兑换');
-      return;
+      return { failedCdks: cdkLines.map(cdk => ({ cdk, reason: '未配置 API Key' })), successCount: 0, failCount: cdkLines.length };
     }
 
     console.log('📝 已加载 API Key');
@@ -72,6 +73,7 @@ export async function redeemCDK() {
     // 统计兑换结果
     const successCount = results.filter(r => r.success).length;
     const failCount = results.filter(r => !r.success).length;
+    const failedResults = results.filter(r => !r.success);
 
     console.log('\n📊 兑换结果统计:');
     console.log(`✅ 成功: ${successCount}/${cdkLines.length}`);
@@ -85,19 +87,31 @@ export async function redeemCDK() {
     } else {
       console.log('\n⚠️  部分 CDK 兑换失败，保留文件内容');
       console.log('失败的 CDK:');
-      results.filter(r => !r.success).forEach(r => {
+      failedResults.forEach(r => {
         console.log(`  - ${r.cdk}: ${r.reason}`);
       });
 
       // 将失败的 CDK 写回文件
-      const failedCdks = results.filter(r => !r.success).map(r => r.cdk);
+      const failedCdks = failedResults.map(r => r.cdk);
       if (failedCdks.length > 0) {
         writeCDKFile(cdkFilePath, failedCdks);
         console.log('✅ 已将失败的 CDK 写回文件');
       }
     }
 
+    // 返回兑换结果
+    return {
+      failedCdks: failedResults,
+      successCount,
+      failCount
+    };
+
   } catch (error) {
     console.error('❌ 兑换 CDK 失败:', error.message);
+    return {
+      failedCdks: [{ cdk: 'unknown', reason: error.message }],
+      successCount: 0,
+      failCount: 1
+    };
   }
 }

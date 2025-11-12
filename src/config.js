@@ -22,7 +22,7 @@ export const config = {
 
   // 浏览器配置
   browser: {
-    headless: process.env.HEADLESS === 'true',
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--start-maximized']
   },
 
