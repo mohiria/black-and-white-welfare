@@ -3,13 +3,15 @@ node_modules/
 package-lock.json
 
 # 敏感信息
-config/cookies.json
-config/cookie.txt
 .env
 .env.local
 
-# 截图文件
+# 截图文件（保存在 images 目录）
 *.png
+images/
+
+# 临时文件
+tmp/
 
 # 日志
 *.log
