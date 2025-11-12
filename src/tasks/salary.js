@@ -11,6 +11,15 @@ export async function claimDailySalary(page) {
   try {
     await sleep(config.sleepDuration.medium);
 
+    // 检查工资是否已领取
+    console.log('检查工资领取状态...');
+    const claimedButton = await page.$('//button[@class="btn btn-outline-secondary btn-claimed"]');
+
+    if (claimedButton) {
+      console.log('✅ 今日工资已领取，跳过领取任务');
+      return;
+    }
+
     // 步骤1: 点击工资按钮
     console.log('步骤1: 查找并点击工资按钮...');
     const wageButton = await page.$('//button[@class="wage-button"]');
