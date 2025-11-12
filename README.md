@@ -53,14 +53,14 @@
 6. 找到任意请求，点击查看 Headers
 7. 找到 "Cookie" 字段，复制整个 Cookie 字符串
 8. 格式类似：`sessionid=abc123; token=xyz789; ...`
-![获取cookie](./get_cookie.jpeg)
+<div align="center">![获取cookie](./get_cookie.jpeg)</div>
 
 #### 5. 获取 API_KEY 的方法
 1. 打开浏览器，访问 https://ai.hybgzs.com/
 2. 登录你的账号
 3. 进入到个人设置页面
 4. 其他分类下找到访问令牌
-![获取apikey](./get_api_key.jpeg)
+<div align="center">![获取apikey](./get_api_key.jpeg)</div>
 
 #### 5. 启用 GitHub Actions
 
