@@ -47,23 +47,3 @@ jobs:
             images/*.png
           retention-days: 7
 
-      - name: 发送邮件通知（CDK兑换失败时）
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.MAIL_SERVER }}
-          server_port: ${{ secrets.MAIL_PORT }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: '⚠️ CDK兑换失败通知'
-          to: ${{ secrets.MAIL_TO }}
-          from: ${{ secrets.MAIL_USERNAME }}
-          body: |
-            CDK兑换任务执行失败，请检查GitHub Actions日志。
-
-            执行时间: ${{ github.event.repository.updated_at }}
-            仓库: ${{ github.repository }}
-            运行ID: ${{ github.run_id }}
-
-            查看详情: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
