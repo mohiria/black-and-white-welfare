@@ -35,9 +35,9 @@ export const config = {
   maxSpins: 10, // 幸运转盘最大抽奖次数
   timeout: 30000, // 页面加载超时时间（毫秒）
   sleepDuration: {
-    short: 1000,
-    medium: 2000,
-    long: 3000
+    short: 2000,
+    medium: 5000,
+    long: 8000
   }
 };
 

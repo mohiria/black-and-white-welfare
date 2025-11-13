@@ -56,12 +56,39 @@ export async function claimLuckyWheel(page) {
         break;
       }
 
-      // 点击抽奖按钮
-      const luckyDiv = await page.$('//div[@id="my-lucky"]');
+      // 查找抽奖按钮，如果未找到则滚动页面查找
+      let luckyDiv = await page.$("//div[@id='my-lucky']");
+
       if (!luckyDiv) {
-        console.log('⚠️  未找到抽奖按钮 #my-lucky');
-        await page.screenshot({ path: 'images/lucky-div-not-found.png' });
-        break;
+        console.log('⚠️  未在当前视图找到抽奖按钮，开始滚动查找...');
+        let scrollAttempts = 0;
+        const maxScrollAttempts = 10;
+        let previousHeight = 0;
+
+        while (!luckyDiv && scrollAttempts < maxScrollAttempts) {
+          // 滚动页面
+          await page.evaluate(() => window.scrollBy(0, 500));
+          await sleep(config.sleepDuration.short);
+
+          // 再次查找元素
+          luckyDiv = await page.$("//div[@id='my-lucky']");
+
+          // 检查是否已滚动到底部
+          const currentHeight = await page.evaluate(() => window.pageYOffset);
+          if (currentHeight === previousHeight) {
+            // 页面无法继续滚动，说明已到达底部
+            console.log('❌ 已滚动到页面底部，仍未找到抽奖按钮 #my-lucky');
+            await page.screenshot({ path: 'images/lucky-div-not-found.png' });
+            throw new Error('未找到抽奖按钮 #my-lucky，工作流失败');
+          }
+
+          previousHeight = currentHeight;
+          scrollAttempts++;
+        }
+
+        if (luckyDiv) {
+          console.log(`✅ 滚动后找到抽奖按钮（尝试 ${scrollAttempts} 次）`);
+        }
       }
 
       console.log('✅ 找到抽奖按钮，点击中心位置...');
@@ -122,9 +149,61 @@ export async function claimLuckyWheel(page) {
           }
         }
       } else {
-        console.log('⚠️  未找到 CDK 元素和继续参与按钮，跳出循环');
-        await page.screenshot({ path: 'images/lucky-wheel-unknown-popup.png' });
-        break;
+        // 未找到CDK和继续参与按钮，尝试重新查找5次
+        console.log('⚠️  未找到 CDK 元素和继续参与按钮，开始重试...');
+        let retryCount = 0;
+        const maxRetries = 5;
+        let foundElement = false;
+
+        while (retryCount < maxRetries && !foundElement) {
+          retryCount++;
+          console.log(`第 ${retryCount} 次重试查找 CDK 或继续参与按钮...`);
+          await sleep(config.sleepDuration.medium);
+
+          // 重新检查继续参与按钮
+          const retryContiuneButton = await page.$("//div[@class='reward-popup']//button[contains(normalize-space(.), '继续参与')]");
+          if (retryContiuneButton) {
+            console.log('✅ 重试后找到"继续参与"按钮');
+            await retryContiuneButton.click();
+            await sleep(config.sleepDuration.medium);
+            foundElement = true;
+            continue;
+          }
+
+          // 重新检查CDK元素
+          const { element: retryCdkElement, method: retryMethod } = await getCDKElement(page);
+          if (retryCdkElement) {
+            console.log(`✅ 重试后通过 ${retryMethod} 找到 CDK 元素`);
+            foundElement = true;
+
+            const cdkTextRaw = await retryCdkElement.textContent();
+            const cdkText = cleanCDKText(cdkTextRaw);
+            console.log('✅ 获得 CDK 码:', cdkText);
+
+            try {
+              appendCDKToFile(cdkFilePath, cdkText);
+              console.log('✅ CDK 码已保存到:', cdkFilePath);
+            } catch (writeError) {
+              console.error('❌ 保存 CDK 码失败:', writeError.message);
+            }
+
+            const copyCloseButton = await page.$("//div[@class='reward-popup']//button[contains(normalize-space(.), '确认收下')]");
+            if (copyCloseButton) {
+              await copyCloseButton.click();
+              await sleep(config.sleepDuration.short);
+            }
+          }
+        }
+
+        // 如果5次重试后仍未找到，刷新页面继续下一次循环
+        if (!foundElement) {
+          console.log('⚠️  重试5次后仍未找到 CDK 或继续参与按钮，刷新页面...');
+          await page.screenshot({ path: 'images/lucky-wheel-unknown-popup.png' });
+          await page.reload({ waitUntil: 'networkidle', timeout: config.timeout });
+          await sleep(config.sleepDuration.medium);
+          console.log('✅ 页面已刷新，继续下一次循环');
+          continue;
+        }
       }
     }
 
