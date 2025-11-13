@@ -104,3 +104,41 @@ export function clearFile(filePath) {
 export function getAbsolutePath(relativePath) {
   return path.join(__dirname, '..', relativePath);
 }
+
+/**
+ * 清理 CDK 码文本：移除 emoji、换行符、空白字符等，只保留字母数字
+ * @param {string} rawText - 原始 CDK 文本
+ * @returns {string} 清理后的 CDK 码
+ */
+export function cleanCDKText(rawText) {
+  if (!rawText) return '';
+
+  return rawText
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // 移除控制字符
+    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '') // 移除 emoji（4字节）
+    .replace(/[\u2000-\u3300]/g, '') // 移除各种符号和 emoji
+    .replace(/[\uFE00-\uFE0F]/g, '') // 移除变体选择符
+    .replace(/\s+/g, '') // 移除所有空白字符（空格、换行、制表符等）
+    .trim();
+}
+
+/**
+ * 获取 CDK 元素（支持两种定位方式）
+ * @param {Page} page - 页面对象
+ * @returns {Promise<{element: ElementHandle|null, method: string}>} CDK 元素和使用的定位方法
+ */
+export async function getCDKElement(page) {
+  // 优先使用 ID 定位
+  let element = await page.$('#cdk-0');
+  if (element) {
+    return { element, method: 'id' };
+  }
+
+  // 备用 class 定位
+  element = await page.$('//div[@class="cdk-single"]');
+  if (element) {
+    return { element, method: 'class' };
+  }
+
+  return { element: null, method: 'none' };
+}

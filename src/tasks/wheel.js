@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { sleep, appendCDKToFile, getAbsolutePath } from '../utils/helpers.js';
+import { sleep, appendCDKToFile, getAbsolutePath, getCDKElement, cleanCDKText } from '../utils/helpers.js';
 
 /**
  * 使用幸运转盘
@@ -86,9 +86,16 @@ export async function claimLuckyWheel(page) {
       }
 
       // 读取 CDK 码
-      const cdkElement = await page.$("//div[@id='cdk-0']");
+      const { element: cdkElement, method } = await getCDKElement(page);
+
       if (cdkElement) {
-        const cdkText = await cdkElement.textContent();
+        console.log(`✅ 通过 ${method} 定位找到 CDK 元素`);
+
+        const cdkTextRaw = await cdkElement.textContent();
+        console.log('原始 CDK 内容:', cdkTextRaw);
+
+        // 清理 CDK 码：移除 emoji、换行符、空白字符等
+        const cdkText = cleanCDKText(cdkTextRaw);
         console.log('✅ 获得 CDK 码:', cdkText);
 
         // 写入到文件

@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { sleep, appendCDKToFile, getAbsolutePath } from '../utils/helpers.js';
+import { sleep, appendCDKToFile, getAbsolutePath, getCDKElement, cleanCDKText } from '../utils/helpers.js';
 
 /**
  * 领取每日工资
@@ -42,15 +42,23 @@ export async function claimDailySalary(page) {
 
     // 步骤2: 读取 CDK 码
     console.log('步骤2: 读取 CDK 码...');
-    const cdkElement = await page.$('//div[@class="cdk-single"]');
+
+    // 尝试两种定位方式：优先使用 ID 定位，备用 class 定位
+    const { element: cdkElement, method } = await getCDKElement(page);
 
     if (!cdkElement) {
-      console.log('⚠️  未找到 CDK 元素');
+      console.log('❌ 两种定位方式都未找到 CDK 元素');
       await page.screenshot({ path: 'images/cdk-element-not-found.png' });
       return;
     }
 
-    const cdkText = await cdkElement.textContent();
+    console.log(`✅ 通过 ${method} 定位找到 CDK 元素`);
+
+    const cdkTextRaw = await cdkElement.textContent();
+    console.log('原始 CDK 内容:', cdkTextRaw);
+
+    // 清理 CDK 码：移除 emoji、换行符、空白字符等
+    const cdkText = cleanCDKText(cdkTextRaw);
     console.log('✅ 获得每日工资 CDK 码:', cdkText);
 
     // 步骤3: 保存 CDK 码到文件
@@ -62,17 +70,17 @@ export async function claimDailySalary(page) {
       console.error('❌ 保存 CDK 码失败:', writeError.message);
     }
 
-    // 步骤4: 点击"复制并关闭"按钮
-    console.log('步骤4: 查找并点击"复制并关闭"按钮...');
-    const copyCloseButton = await page.$('//div[@class="reward-popup"]//button[contains(normalize-space(.), "复制并关闭")]');
+    // 步骤4: 点击"确认收下"按钮
+    console.log('步骤4: 查找并点击"确认收下"按钮...');
+    const copyCloseButton = await page.$("//div[@class='reward-popup']//button[contains(normalize-space(.), '确认收下')]");
 
     if (!copyCloseButton) {
-      console.log('⚠️  未找到"复制并关闭"按钮');
+      console.log('⚠️  未找到"确认收下"按钮');
       await page.screenshot({ path: 'images/copy-close-button-not-found.png' });
       return;
     }
 
-    console.log('✅ 找到"复制并关闭"按钮，点击...');
+    console.log('✅ 找到"确认收下"按钮，点击...');
     await copyCloseButton.click();
     await sleep(config.sleepDuration.short);
 

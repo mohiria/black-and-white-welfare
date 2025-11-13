@@ -49,7 +49,7 @@ async function main() {
     if (!isLoggedIn) {
       console.error('❌ 登录失败，请检查 CDK_COOKIE_STRING 是否有效');
       await page.screenshot({ path: 'images/login-failed.png' });
-      return;
+      throw new Error('CDK 网页登录失败，工作流终止');
     }
 
     console.log('✅ 登录成功！');
