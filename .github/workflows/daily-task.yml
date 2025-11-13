@@ -1,9 +1,9 @@
 name: 自动领取CDK
 
 on:
-  # 定时任务：每6小时执行一次
+  # 定时任务：每2小时执行一次
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 */2 * * *'
 
   # 允许手动触发
   workflow_dispatch:
