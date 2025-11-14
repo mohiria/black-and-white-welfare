@@ -128,16 +128,30 @@ export function cleanCDKText(rawText) {
  * @returns {Promise<{element: ElementHandle|null, method: string}>} CDK 元素和使用的定位方法
  */
 export async function getCDKElement(page) {
-  // 优先使用 ID 定位
-  let element = await page.$('#cdk-0');
-  if (element) {
-    return { element, method: 'id' };
+  // 优先使用 ID 定位（等待元素可见）
+  try {
+    const element = await page.waitForSelector('#cdk-0', {
+      state: 'visible',
+      timeout: 3000
+    });
+    if (element) {
+      return { element, method: 'id' };
+    }
+  } catch (e) {
+    // ID定位失败，尝试class定位
   }
 
-  // 备用 class 定位
-  element = await page.$('//div[@class="cdk-single"]');
-  if (element) {
-    return { element, method: 'class' };
+  // 备用 class 定位（等待元素可见）
+  try {
+    const element = await page.waitForSelector('//div[@class="cdk-single"]', {
+      state: 'visible',
+      timeout: 3000
+    });
+    if (element) {
+      return { element, method: 'class' };
+    }
+  } catch (e) {
+    // class定位也失败
   }
 
   return { element: null, method: 'none' };

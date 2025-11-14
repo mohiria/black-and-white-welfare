@@ -102,8 +102,30 @@ export async function claimLuckyWheel(page) {
       // 等待弹窗出现
       await sleep(config.sleepDuration.long);
 
+      // 等待弹窗完全显示（确保动画完成）
+      try {
+        await page.waitForSelector("//div[@class='reward-popup']", {
+          state: 'visible',
+          timeout: 5000
+        });
+        console.log('✅ 弹窗已显示');
+      } catch (e) {
+        console.log('⚠️  未检测到弹窗，继续尝试...');
+      }
+
+      // 额外等待确保弹窗内容完全渲染（headless模式需要）
+      await sleep(1000);
+
       // 检查弹窗类型
-      const continueButton = await page.$("//div[@class='reward-popup']//button[contains(normalize-space(.), '继续参与')]");
+      let continueButton = null;
+      try {
+        continueButton = await page.waitForSelector(
+          "//div[@class='reward-popup']//button[contains(normalize-space(.), '继续参与')]",
+          { state: 'visible', timeout: 3000 }
+        );
+      } catch (e) {
+        console.log('未找到"继续参与"按钮，检查是否为CDK弹窗...');
+      }
 
       if (continueButton) {
         console.log('✅ 检测到"继续参与"按钮，点击继续...');
@@ -134,18 +156,30 @@ export async function claimLuckyWheel(page) {
         }
 
         // 点击"确认收下"按钮
-        const copyCloseButton = await page.$("//div[@class='reward-popup']//button[contains(normalize-space(.), '确认收下')]");
-        if (copyCloseButton) {
-          console.log('✅ 点击"确认收下"按钮...');
-          await copyCloseButton.click();
-          await sleep(config.sleepDuration.short);
-        } else {
+        try {
+          const copyCloseButton = await page.waitForSelector(
+            "//div[@class='reward-popup']//button[contains(normalize-space(.), '确认收下')]",
+            { state: 'visible', timeout: 3000 }
+          );
+          if (copyCloseButton) {
+            console.log('✅ 点击"确认收下"按钮...');
+            await copyCloseButton.click();
+            await sleep(config.sleepDuration.short);
+          }
+        } catch (e) {
           console.log('⚠️  未找到"确认收下"按钮');
           // 尝试关闭弹窗的其他方式
-          const closeButton = await page.$('//div[@class="reward-popup"]//button');
-          if (closeButton) {
-            await closeButton.click();
-            await sleep(config.sleepDuration.short);
+          try {
+            const closeButton = await page.waitForSelector(
+              '//div[@class="reward-popup"]//button',
+              { state: 'visible', timeout: 2000 }
+            );
+            if (closeButton) {
+              await closeButton.click();
+              await sleep(config.sleepDuration.short);
+            }
+          } catch (e2) {
+            console.log('⚠️  也未找到其他关闭按钮');
           }
         }
       } else {
@@ -160,14 +194,21 @@ export async function claimLuckyWheel(page) {
           console.log(`第 ${retryCount} 次重试查找 CDK 或继续参与按钮...`);
           await sleep(config.sleepDuration.medium);
 
-          // 重新检查继续参与按钮
-          const retryContiuneButton = await page.$("//div[@class='reward-popup']//button[contains(normalize-space(.), '继续参与')]");
-          if (retryContiuneButton) {
-            console.log('✅ 重试后找到"继续参与"按钮');
-            await retryContiuneButton.click();
-            await sleep(config.sleepDuration.medium);
-            foundElement = true;
-            continue;
+          // 重新检查继续参与按钮（使用waitForSelector）
+          try {
+            const retryContiuneButton = await page.waitForSelector(
+              "//div[@class='reward-popup']//button[contains(normalize-space(.), '继续参与')]",
+              { state: 'visible', timeout: 2000 }
+            );
+            if (retryContiuneButton) {
+              console.log('✅ 重试后找到"继续参与"按钮');
+              await retryContiuneButton.click();
+              await sleep(config.sleepDuration.medium);
+              foundElement = true;
+              continue;
+            }
+          } catch (e) {
+            // 继续查找CDK元素
           }
 
           // 重新检查CDK元素
@@ -187,10 +228,17 @@ export async function claimLuckyWheel(page) {
               console.error('❌ 保存 CDK 码失败:', writeError.message);
             }
 
-            const copyCloseButton = await page.$("//div[@class='reward-popup']//button[contains(normalize-space(.), '确认收下')]");
-            if (copyCloseButton) {
-              await copyCloseButton.click();
-              await sleep(config.sleepDuration.short);
+            try {
+              const copyCloseButton = await page.waitForSelector(
+                "//div[@class='reward-popup']//button[contains(normalize-space(.), '确认收下')]",
+                { state: 'visible', timeout: 2000 }
+              );
+              if (copyCloseButton) {
+                await copyCloseButton.click();
+                await sleep(config.sleepDuration.short);
+              }
+            } catch (e) {
+              console.log('⚠️  未找到"确认收下"按钮');
             }
           }
         }
