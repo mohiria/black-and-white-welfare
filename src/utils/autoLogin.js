@@ -87,7 +87,7 @@ async function loginCDKOAuth(page) {
     console.log('  - 访问 https://cdk.hybgzs.com/');
     await page.goto('https://cdk.hybgzs.com/', {
       waitUntil: 'domcontentloaded',
-      timeout: 60000
+      timeout: 30000
     });
     await sleep(2000);
 
