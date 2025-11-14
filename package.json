@@ -6,8 +6,6 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "save-cookies": "node src/utils/saveCookies.js",
-    "verify-cookies": "node verify-cookies.js",
     "test": "node src/index.js"
   },
   "keywords": [

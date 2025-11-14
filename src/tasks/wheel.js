@@ -36,7 +36,7 @@ export async function claimLuckyWheel(page) {
     // 导航到幸运转盘页面
     console.log('步骤1: 导航到幸运转盘页面...');
     await page.goto('https://cdk.hybgzs.com/wheel.php', {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: config.timeout
     });
     await sleep(config.sleepDuration.medium);
@@ -247,7 +247,7 @@ export async function claimLuckyWheel(page) {
         if (!foundElement) {
           console.log('⚠️  重试5次后仍未找到 CDK 或继续参与按钮，刷新页面...');
           await page.screenshot({ path: 'images/lucky-wheel-unknown-popup.png' });
-          await page.reload({ waitUntil: 'networkidle', timeout: config.timeout });
+          await page.reload({ waitUntil: 'domcontentloaded', timeout: config.timeout });
           await sleep(config.sleepDuration.medium);
           console.log('✅ 页面已刷新，继续下一次循环');
           continue;

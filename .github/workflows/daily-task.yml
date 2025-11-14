@@ -32,8 +32,10 @@ jobs:
       - name: 运行自动化脚本
         run: npm start
         env:
-          # 从 Environment 中读取环境变量
-          CDK_COOKIE_STRING: ${{ secrets.CDK_COOKIE_STRING }}
+          # Linux.do 账号密码（必需）
+          LINUX_DO_USERNAME: ${{ secrets.LINUX_DO_USERNAME }}
+          LINUX_DO_PASSWORD: ${{ secrets.LINUX_DO_PASSWORD }}
+          # AI 站点配置
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
           AI_REDEEM_URL: ${{ secrets.AI_REDEEM_URL }}
 

@@ -9,8 +9,7 @@ dotenv.config();
 export const config = {
   // CDK 站点配置
   cdk: {
-    url: 'https://cdk.hybgzs.com/',
-    cookie: process.env.CDK_COOKIE_STRING || ''
+    url: 'https://cdk.hybgzs.com/'
   },
 
   // AI 站点配置
@@ -22,7 +21,7 @@ export const config = {
 
   // 浏览器配置
   browser: {
-    headless: true,
+    headless: false,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--start-maximized']
   },
 
@@ -47,8 +46,10 @@ export const config = {
 export function validateConfig() {
   const errors = [];
 
-  if (!config.cdk.cookie) {
-    errors.push('❌ 缺少环境变量: CDK_COOKIE_STRING');
+  // 检查 Linux.do 账号密码（必需）
+  if (!process.env.LINUX_DO_USERNAME || !process.env.LINUX_DO_PASSWORD) {
+    errors.push('❌ 缺少 Linux.do 登录凭证');
+    errors.push('   请配置: LINUX_DO_USERNAME 和 LINUX_DO_PASSWORD');
   }
 
   if (!config.ai.apiKey) {
@@ -62,5 +63,6 @@ export function validateConfig() {
     return false;
   }
 
+  console.log('✅ 使用 Linux.do 账号密码自动登录');
   return true;
 }

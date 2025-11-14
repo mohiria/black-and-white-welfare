@@ -1,6 +1,6 @@
-import { config, validateConfig } from './config.js';
-import { sleep } from './utils/helpers.js';
-import { createBrowser, createContext, handleAnnouncementPopup, checkLoginStatus } from './utils/browser.js';
+import { validateConfig } from './config.js';
+import { createBrowser, handleAnnouncementPopup } from './utils/browser.js';
+import { autoOAuthFlow } from './utils/autoLogin.js';
 import { claimDailySalary } from './tasks/salary.js';
 import { claimLuckyWheel } from './tasks/wheel.js';
 import { redeemCDK } from './tasks/redeem.js';
@@ -25,34 +25,28 @@ async function main() {
     // 创建浏览器实例
     browser = await createBrowser();
 
-    // 创建 CDK 站点上下文
-    const result = await createContext(browser, config.cdk.cookie);
-    context = result.context;
-    const page = result.page;
+    // 使用 Linux.do 账号密码自动登录
+    console.log('🔐 使用 Linux.do 账号密码自动登录...\n');
 
-    // 访问 CDK 站点
-    console.log('🌐 正在访问网站:', config.cdk.url);
-    await page.goto(config.cdk.url, {
-      waitUntil: 'networkidle',
-      timeout: config.timeout
-    });
+    const autoLoginResult = await autoOAuthFlow(
+      browser,
+      process.env.LINUX_DO_USERNAME,
+      process.env.LINUX_DO_PASSWORD
+    );
 
-    // 等待页面加载
-    await sleep(config.sleepDuration.long);
+    if (!autoLoginResult.success) {
+      console.error('❌ 自动登录失败，脚本终止执行');
+      process.exit(1);
+    }
+
+    // 自动登录成功，使用返回的上下文和页面
+    context = autoLoginResult.context;
+    const page = autoLoginResult.page;
+
+    console.log('✅ 自动登录成功，开始执行任务...\n');
 
     // 处理公告弹窗
     await handleAnnouncementPopup(page);
-
-    // 检查登录状态
-    const isLoggedIn = await checkLoginStatus(page);
-
-    if (!isLoggedIn) {
-      console.error('❌ 登录失败，请检查 CDK_COOKIE_STRING 是否有效');
-      await page.screenshot({ path: 'images/login-failed.png' });
-      throw new Error('CDK 网页登录失败，工作流终止');
-    }
-
-    console.log('✅ 登录成功！');
 
     // 任务1: 领取每日工资
     await claimDailySalary(page);

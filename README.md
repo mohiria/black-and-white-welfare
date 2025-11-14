@@ -7,18 +7,22 @@
 - ✅ 自动领取每日工资
 - ✅ 自动使用幸运转盘
 - ✅ 自动兑换 CDK 码（通过 API）
-- ✅ 通过 Cookie 实现免登录
+- ✅ **Linux.do 账号密码自动登录（推荐 - 永不过期）**
+- ✅ 支持 Cookie 方式作为备用（兼容旧版本）
 - ✅ 支持环境变量参数化配置
-- ✅ GitHub Actions 定时自动执行（每 6 小时）
+- ✅ GitHub Actions 定时自动执行（每 30 分钟）
 - ✅ 错误截图自动保存
 - ✅ 模块化代码结构
 
 ## 快速开始
 
+**🚀 推荐阅读：[3步极简配置指南 QUICK_START.md](QUICK_START.md)**
+
 ### 前置要求
 
 - Node.js 20 或更高版本
 - npm 包管理器
+- **Linux.do 账号**（推荐，实现永不过期的自动登录）
 
 ### GitHub Actions 自动化部署
 
@@ -37,13 +41,24 @@
 
 在 `production` 环境中添加以下 Secrets：
 
+**推荐方式（永不过期）：**
+
 | Secret 名称 | 说明 | 是否必需 |
 |------------|------|---------|
-| `CDK_COOKIE_STRING` | CDK 站点的 Cookie 字符串 | ✅ 必需 |
+| `LINUX_DO_USERNAME` | Linux.do 用户名或邮箱 | ✅ 推荐 |
+| `LINUX_DO_PASSWORD` | Linux.do 密码 | ✅ 推荐 |
 | `AI_API_KEY` | AI 站点的 API Key | ✅ 必需 |
+
+**备用方式（会过期，需定期更新）：**
+
+| Secret 名称 | 说明 | 是否必需 |
+|------------|------|---------|
+| `CDK_COOKIE_STRING` | CDK 站点的 Cookie 字符串 | ⚪ 备用 |
 | `AI_REDEEM_URL` | 兑换接口地址（默认：https://ai.hybgzs.com/api/user/topup） | ⚪ 可选 |
 
-#### 4. 获取 Cookie 的方法
+> 💡 **强烈推荐使用 Linux.do 账号密码方式**，彻底解决 Cookie 频繁过期问题！详见：[AUTO_LOGIN_GUIDE.md](AUTO_LOGIN_GUIDE.md)
+
+#### 4. 获取 Cookie 的方法（仅备用方式需要）
 
 1. 打开浏览器，访问 https://cdk.hybgzs.com/
 2. 登录你的账号
@@ -95,19 +110,33 @@ cp .env.example .env
 编辑 `.env` 文件：
 
 ```env
-# CDK 站点 Cookie（必需）
-# 从浏览器开发者工具中复制，格式：cookie1=value1; cookie2=value2
-CDK_COOKIE_STRING=your_cdk_cookie_here
+# ========================================
+# 方式一：Linux.do 账号密码（推荐 - 彻底解决过期问题）
+# ========================================
+LINUX_DO_USERNAME=your_username_or_email
+LINUX_DO_PASSWORD=your_password
 
-# AI 站点 API Key（必需）
-# 用于调用兑换接口
+# ========================================
+# 方式二：CDK站点Cookie（备用）
+# ========================================
+# CDK_COOKIE_STRING=your_cookie_here
+
+# ========================================
+# AI 站点配置（必需）
+# ========================================
 AI_API_KEY=your_api_key_here
-
-# AI 站点兑换接口 URL（可选）
 AI_REDEEM_URL=https://ai.hybgzs.com/api/user/topup
 ```
 
-#### 4. 运行脚本
+> 💡 **只需配置 Linux.do 账号密码即可**，Cookie 方式仅作备用。详细说明：[AUTO_LOGIN_GUIDE.md](AUTO_LOGIN_GUIDE.md)
+
+#### 4. 测试自动登录（首次使用推荐）
+
+```bash
+npm run test-login
+```
+
+如果测试通过，即可正式运行：
 
 ```bash
 npm start
@@ -142,20 +171,21 @@ npm start
 
 ## 定时执行说明
 
-当前配置：**每 0.5 小时自动执行一次**
+当前配置：**每 30 分钟自动执行一次**
 
 修改定时：编辑 `.github/workflows/daily-task.yml` 中的 cron 表达式
 
 ```yaml
 schedule:
-  - cron: '0/30 * * * *'  # 每 1 小时执行
+  - cron: '*/30 * * * *'  # 每 30 分钟执行
 ```
 
 常用 cron 表达式：
 
 | 表达式 | 说明 |
 |--------|------|
-| `0/30 * * * *` | 每 0.5 小时执行一次 |
+| `*/30 * * * *` | 每 30 分钟执行一次 |
+| `0 */1 * * *` | 每 1 小时执行一次 |
 | `0 */6 * * *` | 每 6 小时执行一次 |
 | `0 1 * * *` | 每天 UTC 1:00（北京时间 9:00） |
 | `0 0,12 * * *` | 每天 0:00 和 12:00 执行 |
@@ -164,10 +194,13 @@ schedule:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  1. 访问 CDK 站点（https://cdk.hybgzs.com/）                │
-│     - 使用 CDK_COOKIE_STRING 免登录                         │
-│     - 处理公告弹窗                                           │
-│     - 检查登录状态                                           │
+│  1. 自动登录（推荐方式）                                     │
+│     - 登录 Linux.do (https://linux.do/login)                │
+│     - 访问 CDK 站点（https://cdk.hybgzs.com/）              │
+│     - 自动完成 OAuth 授权                                    │
+│     - 获取全新 session（永不过期）                          │
+│     或                                                       │
+│     使用 CDK_COOKIE_STRING 免登录（备用方式，会过期）       │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -209,14 +242,23 @@ schedule:
 
 #### 1. 登录失败
 
-**问题：** 日志显示 "❌ 登录失败，请检查 CDK_COOKIE_STRING 是否有效"
+**问题：** 日志显示 "❌ 登录失败" 或 "❌ Linux.do 登录失败"
 
 **原因：**
-- Cookie 已过期
+- Linux.do 账号密码错误（推荐方式）
+- Linux.do 有验证码或 2FA
+- Cookie 已过期（备用方式）
 - Cookie 格式不正确
-- 账号密码被修改
+- 网络连接问题
 
 **解决方案：**
+
+**推荐方式（彻底解决）：**
+1. 配置 `LINUX_DO_USERNAME` 和 `LINUX_DO_PASSWORD`
+2. 运行 `npm run test-login` 测试自动登录
+3. 查看详细排查指南：[AUTO_LOGIN_GUIDE.md](AUTO_LOGIN_GUIDE.md)
+
+**备用方式（临时解决）：**
 1. 重新获取 Cookie（参考上面的"获取 Cookie 的方法"）
 2. 更新 GitHub Environment 中的 `CDK_COOKIE_STRING`
 3. 重新运行工作流测试
@@ -283,17 +325,20 @@ GitHub Actions 会自动保存执行日志和错误截图：
 - ✅ 定期更换密码和 Cookie（建议每月）
 - ✅ 使用强密码和双因素认证
 
-### ⚠️ Cookie 失效处理
+### ⚠️ Cookie 过期问题
+
+**传统 Cookie 方式的问题：**
 
 Cookie 可能因以下原因失效：
-
 - 过期时间到期（通常 7-30 天）
 - 密码被修改
 - 网站更新认证机制
 - IP 地址变化限制
 - 安全策略变更
 
-**解决方案：** 重新获取 Cookie 并更新 Environment Secrets
+**彻底解决方案：** 使用 Linux.do 账号密码自动登录！
+
+每次运行自动获取新 session，**永不过期**，详见：[AUTO_LOGIN_GUIDE.md](AUTO_LOGIN_GUIDE.md)
 
 ### 📝 合规使用
 
@@ -309,6 +354,13 @@ Cookie 可能因以下原因失效：
 - **Playwright** - 浏览器自动化框架
 - **GitHub Actions** - CI/CD 自动化平台
 - **dotenv** - 环境变量管理
+
+## 相关文档
+
+- **[QUICK_START.md](QUICK_START.md)** - 3步极简配置指南
+- **[AUTO_LOGIN_GUIDE.md](AUTO_LOGIN_GUIDE.md)** - 自动登录完整指南（强烈推荐）
+- **[CHANGELOG.md](CHANGELOG.md)** - 版本变更记录
+- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - 项目结构说明
 
 ## 更新日志
 
