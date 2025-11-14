@@ -48,7 +48,7 @@ async function loginLinuxDo(page, username, password) {
     console.log('  - 等待登录完成...');
     await page.waitForSelector('#toggle-current-user', {
       state: 'visible',
-      timeout: 180000
+      timeout: 30000
     });
 
     console.log('✅ Linux.do 登录成功！\n');
